@@ -139,13 +139,14 @@ class NAGFluxTransformer2DModel(FluxTransformer2DModel):
 
         if do_nag:
             hidden_states = hidden_states.tile(2, 1, 1)
-        hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
+        # hidden_states = torch.cat([encoder_hidden_states, hidden_states], dim=1)
 
         for index_block, block in enumerate(self.single_transformer_blocks):
             if torch.is_grad_enabled() and self.gradient_checkpointing:
                 hidden_states = self._gradient_checkpointing_func(
                     block,
                     hidden_states,
+                    encoder_hidden_states=encoder_hidden_states,
                     temb,
                     image_rotary_emb,
                 )
@@ -153,6 +154,7 @@ class NAGFluxTransformer2DModel(FluxTransformer2DModel):
             else:
                 hidden_states = block(
                     hidden_states=hidden_states,
+                    encoder_hidden_states=encoder_hidden_states,
                     temb=temb,
                     image_rotary_emb=image_rotary_emb,
                     joint_attention_kwargs=joint_attention_kwargs,
